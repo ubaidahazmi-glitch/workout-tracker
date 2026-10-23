@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Workout Tracker</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-push: #ef4444;
+            --accent-pull: #3b82f6;
+            --accent-leg: #10b981;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border-color: #334155;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+            color: #f1f5f9;
+            letter-spacing: 0.5px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        .day-selector {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .day-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .day-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .day-btn.active {
+            border-color: var(--primary);
+            background: #312e81;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-push { background: rgba(239, 68, 68, 0.2); color: var(--accent-push); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-pull { background: rgba(59, 130, 246, 0.2); color: var(--accent-pull); border: 1px solid rgba(59, 130, 246, 0.3); }
+        .badge-leg { background: rgba(16, 185, 129, 0.2); color: var(--accent-leg); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge-rest { background: rgba(148, 163, 184, 0.2); color: var(--text-sub); border: 1px solid rgba(148, 163, 184, 0.3); }
+
+        .progress-bar-bg {
+            background: var(--border-color);
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar-fill {
+            background: var(--primary);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+
+        .checklist-item label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .checklist-item input[type="checkbox"]:checked + div span {
+            text-decoration: line-through;
+            color: var(--text-sub);
+        }
+
+        .subtext {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            display: block;
+            margin-top: 2px;
+        }
+
+        .timer-container {
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        .timer-display {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: monospace;
+            margin: 10px 0;
+            color: #f8fafc;
+            letter-spacing: 2px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: #475569; }
+        .btn-primary { background: var(--primary); }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-danger { background: #dc2626; }
+        .btn-danger:hover { background: #b91c1c; }
+
+        .habit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .habit-card {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .habit-card input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .habit-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>HOME WORKOUT TRACKER</h1>
+        <p>Jadual Pemula 6-Hari (Tanpa Suplemen)</p>
+    </header>
+
+    <!-- Day Selector -->
+    <div class="day-selector">
+        <button class="day-btn active" onclick="selectDay('Isnin')">ISNIN (Push)</button>
+        <button class="day-btn" onclick="selectDay('Selasa')">SELASA (Pull)</button>
+        <button class="day-btn" onclick="selectDay('Rabu')">RABU (Leg)</button>
+        <button class="day-btn" onclick="selectDay('Khamis')">KHAMIS (Push)</button>
+        <button class="day-btn" onclick="selectDay('Jumaat')">JUMAAT (Pull)</button>
+        <button class="day-btn" onclick="selectDay('Sabtu')">SABTU (Leg)</button>
+        <button class="day-btn" onclick="selectDay('Ahad')">AHAD (Rest)</button>
+    </div>
+
+    <!-- Progress Card -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title" id="day-title">Latihan Hari Ini</span>
+            <span class="badge badge-push" id="workout-badge">PUSH DAY</span>
+        </div>
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-sub); text-align: right;" id="progress-text">0/4 Senaman Selesai</p>
+    </div>
+
+    <!-- Workout Checklist -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Senarai Semak Senaman</span>
+        </div>
+        <div id="exercise-list">
+            <!-- Dynamic Content -->
+        </div>
+    </div>
+
+    <!-- Daily Habits Checklist -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Tabiat & Nutrisi Harian</span>
+        </div>
+        <div class="habit-grid">
+            <div class="habit-card">
+                <input type="checkbox" id="h-warmup" onchange="saveHabits()">
+                <div>
+                    <span style="font-size:0.85rem; font-weight:600;">Warm-up 5m</span>
+                    <span class="subtext">Regangan & Nadi</span>
+                </div>
+            </div>
+            <div class="habit-card">
+                <input type="checkbox" id="h-water" onchange="saveHabits()">
+                <div>
+                    <span style="font-size:0.85rem; font-weight:600;">Air 2-3L</span>
+                    <span class="subtext">Hidrasi cukup</span>
+                </div>
+            </div>
+            <div class="habit-card">
+                <input type="checkbox" id="h-protein" onchange="saveHabits()">
+                <div>
+                    <span style="font-size:0.85rem; font-weight:600;">Protein Utama</span>
+                    <span class="subtext">Saiz tapak tangan</span>
+                </div>
+            </div>
+            <div class="habit-card">
+                <input type="checkbox" id="h-eggs" onchange="saveHabits()">
+                <div>
+                    <span style="font-size:0.85rem; font-weight:600;">Telur 2-3 Biji</span>
+                    <span class="subtext">Asid amino asas</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timer Widget -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Pemasa Rehat (Rest Timer)</span>
+        </div>
+        <div class="timer-container">
+            <div class="timer-display" id="timer">01:00</div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="startTimer(60)">60s</button>
+                <button class="btn btn-primary" onclick="startTimer(90)">90s</button>
+                <button class="btn btn-danger" onclick="resetTimer()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const workoutData = {
+            'Isnin': { type: 'Push', badgeClass: 'badge-push', exercises: [
+                { name: 'Push ups', target: '3 Set × 8-12 Reps' },
+                { name: 'Dips', target: '3 Set × 8-10 Reps' },
+                { name: 'Diamond push up', target: '2 Set × 5-8 Reps' },
+                { name: 'Pike push up', target: '2 Set × 5-8 Reps' }
+            ]},
+            'Selasa': { type: 'Pull', badgeClass: 'badge-pull', exercises: [
+                { name: 'Pull ups', target: '3 Set × Max Reps' },
+                { name: 'Wide pull up', target: '2 Set × Max Reps' },
+                { name: 'Close grip pull up', target: '2 Set × Max Reps' },
+                { name: 'Chin up', target: '2 Set × Max Reps' }
+            ]},
+            'Rabu': { type: 'Leg', badgeClass: 'badge-leg', exercises: [
+                { name: 'Bodyweight squats', target: '3 Set × 15-20 Reps' },
+                { name: 'Lunges', target: '3 Set × 10 Reps/kaki' },
+                { name: 'Plank variation', target: '3 Set × 30-45 Saat' },
+                { name: 'Hollow body holds', target: '3 Set × 20-30 Saat' }
+            ]},
+            'Khamis': { type: 'Push', badgeClass: 'badge-push', exercises: [
+                { name: 'Push ups', target: '3 Set × 8-12 Reps' },
+                { name: 'Dips', target: '3 Set × 8-10 Reps' },
+                { name: 'Diamond push up', target: '2 Set × 5-8 Reps' },
+                { name: 'Pike push up', target: '2 Set × 5-8 Reps' }
+            ]},
+            'Jumaat': { type: 'Pull', badgeClass: 'badge-pull', exercises: [
+                { name: 'Pull ups', target: '3 Set × Max Reps' },
+                { name: 'Wide pull up', target: '2 Set × Max Reps' },
+                { name: 'Close grip pull up', target: '2 Set × Max Reps' },
+                { name: 'Chin up', target: '2 Set × Max Reps' }
+            ]},
+            'Sabtu': { type: 'Leg', badgeClass: 'badge-leg', exercises: [
+                { name: 'Bodyweight squats', target: '3 Set × 15-20 Reps' },
+                { name: 'Lunges', target: '3 Set × 10 Reps/kaki' },
+                { name: 'Plank variation', target: '3 Set × 30-45 Saat' },
+                { name: 'Hollow body holds', target: '3 Set × 20-30 Saat' }
+            ]},
+            'Ahad': { type: 'Rest', badgeClass: 'badge-rest', exercises: [
+                { name: 'Rehat Sepenuhnya', target: 'Fokus Pemulihan Otot & Rehat' }
+            ]}
+        };
+
+        let currentDay = 'Isnin';
+        let timerInterval;
+
+        function selectDay(day) {
+            currentDay = day;
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.includes(day.toUpperCase()));
+            });
+
+            const data = workoutData[day];
+            document.getElementById('day-title').textContent = `Hari ${day}`;
+            const badge = document.getElementById('workout-badge');
+            badge.textContent = `${data.type.toUpperCase()} DAY`;
+            badge.className = `badge ${data.badgeClass}`;
+
+            renderExercises(data.exercises);
+            loadSavedProgress();
+            loadHabits();
+        }
+
+        function renderExercises(exercises) {
+            const container = document.getElementById('exercise-list');
+            container.innerHTML = '';
+
+            exercises.forEach((ex, idx) => {
+                const item = document.createElement('div');
+                item.className = 'checklist-item';
+                item.innerHTML = `
+                    <label>
+                        <input type="checkbox" id="ex-${idx}" onchange="updateProgress()">
+                        <div>
+                            <span>${ex.name}</span>
+                            <span class="subtext">${ex.target}</span>
+                        </div>
+                    </label>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('#exercise-list input[type="checkbox"]');
+            let checkedCount = 0;
+            const checkedStates = [];
+
+            checkboxes.forEach((cb) => {
+                if (cb.checked) checkedCount++;
+                checkedStates.push(cb.checked);
+            });
+
+            const total = checkboxes.length;
+            const percent = total > 0 ? (checkedCount / total) * 100 : 0;
+
+            document.getElementById('progress-fill').style.width = `${percent}%`;
+            document.getElementById('progress-text').textContent = `${checkedCount}/${total} Senaman Selesai`;
+
+            localStorage.setItem(`workout_${currentDay}`, JSON.stringify(checkedStates));
+        }
+
+        function loadSavedProgress() {
+            const saved = JSON.parse(localStorage.getItem(`workout_${currentDay}`));
+            const checkboxes = document.querySelectorAll('#exercise-list input[type="checkbox"]');
+
+            if (saved) {
+                checkboxes.forEach((cb, idx) => {
+                    if (cb) cb.checked = !!saved[idx];
+                });
+            }
+            updateProgress();
+        }
+
+        function saveHabits() {
+            const habits = {
+                warmup: document.getElementById('h-warmup').checked,
+                water: document.getElementById('h-water').checked,
+                protein: document.getElementById('h-protein').checked,
+                eggs: document.getElementById('h-eggs').checked,
+            };
+            localStorage.setItem(`habits_${currentDay}`, JSON.stringify(habits));
+        }
+
+        function loadHabits() {
+            const saved = JSON.parse(localStorage.getItem(`habits_${currentDay}`));
+            if (saved) {
+                document.getElementById('h-warmup').checked = !!saved.warmup;
+                document.getElementById('h-water').checked = !!saved.water;
+                document.getElementById('h-protein').checked = !!saved.protein;
+                document.getElementById('h-eggs').checked = !!saved.eggs;
+            } else {
+                document.querySelectorAll('.habit-card input').forEach(cb => cb.checked = false);
+            }
+        }
+
+        function startTimer(seconds) {
+            clearInterval(timerInterval);
+            let timeRemaining = seconds;
+
+            function updateDisplay() {
+                const mins = Math.floor(timeRemaining / 60);
+                const secs = timeRemaining % 60;
+                document.getElementById('timer').textContent = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            updateDisplay();
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                if (timeRemaining < 0) {
+                    clearInterval(timerInterval);
+                    alert("Masa rehat tamat! Mula set seterusnya.");
+                    resetTimer();
+                } else {
+                    updateDisplay();
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = "01:00";
+        }
+
+        // Auto-detect current day or default to Isnin
+        const dayNames = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+        const todayName = dayNames[new Date().getDay()];
+        selectDay(workoutData[todayName] ? todayName : 'Isnin');
+    </script>
+</body>
+</html>
